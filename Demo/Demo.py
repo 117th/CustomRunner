@@ -1,5 +1,6 @@
 import sys
 import requests
+import json
 from PyQt5.QtWidgets import (QWidget, QLabel, QComboBox,
     QLineEdit, QApplication, QButtonGroup, QRadioButton,
     QVBoxLayout, QHBoxLayout)
@@ -16,9 +17,18 @@ class Window(QWidget):
 
     def getJSON(self):
 
+        #пытаемся загрузить json Если он есть - бэкапим его. Если его нет - читаем бэкап.
+        #имеет смысл реализовать в таком случае окно ручного ввода
         apiLink = "http://www.floatrates.com/daily/rub.json"
-        resp = requests.get(url=apiLink)
-        self.data = resp.json()
+        try:
+            resp = requests.get(url=apiLink)
+            self.data = resp.json()
+            with open('backup.json', 'w') as file:
+                json.dump(self.data, file)
+        except requests.exceptions.RequestException as e:
+            print("cant get json")
+            with open('backup.json') as file:
+                self.data = json.load(file)
         
     def initUI(self):
 
@@ -93,7 +103,6 @@ class Window(QWidget):
             
         #вычисляем результат
         result = inputValue*rate*nds
-        print(nds)
         self.outputQLE.setText(str(round(result, 2)))
         
 if __name__ == '__main__':
